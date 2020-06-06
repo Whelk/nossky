@@ -209,22 +209,17 @@ while not done:
 
     #####
     # buildings
-    flasher = False
     for b in buildings:
         pygame.draw.rect(screen, b['color'], [ b['position_x'], window_y, b['width'], -(b['height']) ])
-
-      
 
         #####
         # flashers
         if 'flasher' in b:
-            flasher = True
             if b['flasher']['on'] > 0:
                 pygame.draw.ellipse( screen, RED, b['flasher']['coords'])
             b['flasher']['on'] += 1
             if b['flasher']['on'] >= 40:
                 b['flasher']['on'] = -40
-
         # flashers
         #####
 
@@ -240,7 +235,6 @@ while not done:
             office = random.choice(b['offices_dark'])
             b['offices_dark'].remove(office)
             b['offices_light'].append(office)
-
         # add offices
         #####
 
@@ -253,7 +247,6 @@ while not done:
         # remove offices
         #####
 
-
     # buildings
     #####
 
@@ -264,7 +257,7 @@ while not done:
     # pygame.display.flip()
     pygame.display.update()
  
-    # --- Limit to 60 frames per second
+    # --- Limit FPS
     clock.tick(30)
 
 # Close the window and quit.
