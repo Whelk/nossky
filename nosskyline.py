@@ -122,9 +122,8 @@ while more_buildings:
     else:
         last = buildings[-1]
         position_x = last['position_x'] + ( last['width'] + random.randint( 
-            0-int(last['width']*.25),
-            int(last['width'])
-            ))
+            -20, 10)
+            )
 
     if position_x > window_x:
         skyline_filled=True
