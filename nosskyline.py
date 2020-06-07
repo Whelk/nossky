@@ -146,6 +146,8 @@ for b in buildings:
 if flashers:
     tallest = None
     for b in buildings:
+        if b is buildings[-1]:
+            continue
         if not tallest or b['height'] > tallest['height']:
             tallest = b
     tallest['flasher'] = {
