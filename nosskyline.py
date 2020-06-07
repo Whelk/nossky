@@ -15,8 +15,8 @@ star_flicker = False # stars will flicker between all star colors if true (it wa
 buildings = []
 building_max_height = int(window_y * .7)
 building_min_height = int(window_y * .1)
-building_max_width = int(window_x * .15)
-building_min_width = int(window_x * .1)
+building_max_width  = int(window_x * .15)
+building_min_width  = int(window_x * .1)
 
 flashers = True # do you want the tallest building to have a blinking flasher light up top?
 
@@ -53,8 +53,8 @@ def makeMeteoroid(sleeptime=0):
     meteoroid = {
         'coords':[
             random.randint(0, window_x),
-            0, 
-            3, 
+            0,
+            3,
             3
         ],
         'sleeptime':sleeptime if sleeptime else random.randint(20, 360),
@@ -73,7 +73,7 @@ def makeBuilding(position_x=0):
     border_width       = random.randint( 2, 4)
     window_spacing_x   = random.randint( 4, 8)
     window_spacing_y   = random.randint( 4, 12)
-    
+
 
     if window_width >= window_height: window_width = window_height-1 # windows wider than they are high look derpy
 
@@ -112,7 +112,7 @@ while more_buildings:
         position_x = 0
     else:
         last = buildings[-1]
-        position_x = last['position_x'] + ( last['width'] + random.randint( 
+        position_x = last['position_x'] + ( last['width'] + random.randint(
             -20, 10)
             )
 
@@ -152,10 +152,10 @@ pygame.display.set_caption( "Nostalgia Skyline v%s" % version_number)
 
 # Loop until the user clicks the close button.
 done = False
- 
+
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
- 
+
 # -------- Main Program Loop -----------
 while not done:
     # --- Main event loop
@@ -167,10 +167,6 @@ while not done:
         elif event.type == pygame.KEYUP: print( 'key up.')
         elif event.type == pygame.MOUSEBUTTONDOWN: print( 'mouse clickdown')
         elif event.type == pygame.MOUSEBUTTONUP: print( 'mouse uparoo.')
- 
-    # --- Game logic should go here
- 
-    # --- Drawing code should go here
 
     #####
     # add stars
@@ -185,7 +181,6 @@ while not done:
         'color': random.choice(star_colors)
     }
     stars.append(star)
-
     pygame.draw.rect(screen, star['color'], star['coords'])
     # add stars
     #####
@@ -206,11 +201,9 @@ while not done:
     if meteoroid['sleeptime']:
         meteoroid['sleeptime'] -= 1
     else:
-
         pygame.draw.ellipse(screen, BLACK, meteoroid['coords'])
         side = 10 - meteoroid['angle']
         down = 10 - side
-
         meteoroid['coords'][1] += down*5
         if meteoroid['direction'] == 'right':
             meteoroid['coords'][0] += side*5
@@ -267,7 +260,7 @@ while not done:
     #####
 
     pygame.display.update()
- 
+
     # --- Limit FPS
     clock.tick(30)
 
