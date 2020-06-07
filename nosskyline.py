@@ -116,9 +116,12 @@ def makeBuilding(position_x=0):
 
 def setScreen(fullscreen=False):
     if fullscreen:
+        pygame.mouse.set_visible(False)
         fullscreen = pygame.FULLSCREEN
         Skyline.window_x = Skyline.window_x_max
         Skyline.window_y = Skyline.window_y_max
+    else:
+        pygame.mouse.set_visible(True)
     Skyline.screen = pygame.display.set_mode(( Skyline.window_x, Skyline.window_y), fullscreen)
     Skyline.screen.fill(BLACK)
 
