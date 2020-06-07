@@ -225,9 +225,11 @@ while not done:
         else:
             meteoroid['coords'][0] -= side*5
 
-        pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
+        if not behindBuilding(meteoroid['coords'][0], meteoroid['coords'][1]):
+            pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
+
         if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
-            meteoroid = None#makeMeteoroid(sleeptime=random.randint(20,150))
+            meteoroid = None
     # shooting stars
     #####
 
