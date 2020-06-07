@@ -10,6 +10,7 @@ Uses pygame - you can install it via `pip` with the command `pip install -r requ
 ### Keyboard Shortcuts
 Key | Function
 --- | ---
-`q` | quit
 `f` | toggle fullscreen
+`m` | toggle music (must have soundfiles in the /tunes directory)
+`q` | quit
 `r` | reset skyline

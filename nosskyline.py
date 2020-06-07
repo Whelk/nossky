@@ -3,6 +3,7 @@
 import pygame
 import random
 import sys
+import os
 
 pygame.init()
 
@@ -13,23 +14,34 @@ quit_message = "Quitting Nostalgia Skyline. See you next time!"
 infoObject = pygame.display.Info()
 
 class Skyline():
-    stars = []
-    buildings = []
-    meteoroid = None
+    screen = None
     window_x = 700
     window_y = 500
     window_x_max = infoObject.current_w
     window_y_max = infoObject.current_h
+    stars = []
     max_stars = (window_x * window_y) / 350
+    buildings = []
+    meteoroid = None
     flashers = True # do you want the tallest building to have a blinking flasher light up top?
     fullscreen = False
-    screen = None
+
+    tunes = os.listdir('tunes')
+    for t in tunes:
+        if t[-4 :].lower() not in ['.mp3', '.ogg']:
+            tunes.remove(t)
+    current_tune = pygame.mixer.music.load('tunes/%s' % random.choice(tunes))
+    play_tunes = False
 
 if len(sys.argv) > 1:
     for arg in sys.argv[1:]:
         if arg in ['-f', '--fullscreen']:
             Skyline.fullscreen = True
             print("Starting in fullscreen mode.")
+        elif arg in ['-m', '--music']:
+            Skyline.play_tunes = True
+            print("Starting with music on.")
+            pygame.mixer.music.play(-1)
         else:
             print('Invalid argument: %s' % arg)
 
@@ -194,8 +206,7 @@ while not done:
             print(quit_message)
             done = True # Flag that we are done so we exit this loop
         elif event.type == pygame.KEYDOWN:
-            #####
-            # fullscreen toggle
+            # --- fullscreen toggle
             if event.key == pygame.K_f:
                 if Skyline.fullscreen:
                     print("Windowed mode.")
@@ -213,14 +224,26 @@ while not done:
                 Skyline.buildings = []
                 Skyline.stars = []
                 buildingSetup()
-            # fullscreen toggle
-            ####
+            # --- reset skyline
             elif event.key == pygame.K_r:
                 print("Resetting skyline.")
                 setScreen(fullscreen=Skyline.fullscreen)
                 Skyline.buildings = []
                 Skyline.stars = []
                 buildingSetup()
+            # --- music toggle
+            elif event.key == pygame.K_m:
+                if not Skyline.tunes:
+                    print("No musicfiles in tunes directory!")
+                if Skyline.play_tunes:
+                    print("Music off.")
+                    pygame.mixer.music.stop()
+                    Skyline.play_tunes = False
+                else:
+                    print("Music on.")
+                    pygame.mixer.music.play(-1)
+                    Skyline.play_tunes = True
+            # --- quit
             elif event.key == pygame.K_q:
                 done = True
                 print(quit_message)
