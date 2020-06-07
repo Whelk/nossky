@@ -146,7 +146,7 @@ for b in buildings:
 if flashers:
     tallest = None
     for b in buildings:
-        if b is buildings[-1]:
+        if (b['position_x'] + (b['width']*.5)) > window_x:
             continue
         if not tallest or b['height'] > tallest['height']:
             tallest = b
