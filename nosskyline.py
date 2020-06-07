@@ -100,14 +100,27 @@ def makeBuilding(position_x=0):
 
     height              = random.randint( building_min_height, building_max_height)
     width               = random.randint( building_min_width, building_max_width)
-    window_height       = random.randint( 3, 6)
-    window_width        = random.randint( 2, 4)
+    window_width_min    = 2
+    window_height_min   = 3
+    window_height       = random.randint( window_height_min, 6)
+    window_width        = random.randint( window_width_min, 4)
     border_width        = random.randint( 2, 4)
     window_spacing_x    = random.randint( 4, 8)
     window_spacing_y    = random.randint( 4, 12)
 
-    if Skyline.buildings and height in range( Skyline.buildings[-1]['height']-20, Skyline.buildings[-1]['height']+20):
-        height = int(Skyline.buildings[-1]['height'] * .5) # avoid buildings of extremely similar height next to one another
+    if Skyline.buildings:
+        previous_building = Skyline.buildings[-1]
+        # avoid buildings of extremely similar height next to one another
+        if height in range( previous_building['height']-20, previous_building['height']+20):
+            height = int(previous_building['height'] * .5) 
+        # avoid buildings with exact same window sizes next to one another
+        if (window_width, window_height) == (previous_building['window_width'], previous_building['window_height']):
+            if window_width > window_width_min:
+                window_width = window_width_min
+            elif window_height > window_height_min:
+                window_height = window_width_min
+            else:
+                window_height += 1
 
     if window_width >= window_height: window_width = window_height-1 # windows wider than they are high look derpy
 
