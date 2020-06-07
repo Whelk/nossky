@@ -73,6 +73,8 @@ def makeMeteoroid(sleeptime=0):
 
 def makeBuilding(position_x=0):
     height             = random.randint( building_min_height, building_max_height)
+    if buildings and height in range( buildings[-1]['height']-20, buildings[-1]['height']+20):
+        height = int(buildings[-1]['height'] * .5) # avoid buildings of extremely similar height next to one another
     width              = random.randint( building_min_width, building_max_width)
     window_height      = random.randint( 3, 6)
     window_width       = random.randint( 2, 4)
@@ -103,6 +105,7 @@ def makeBuilding(position_x=0):
         "max_population":  int(len(office_grid) * random.randint( 50, 90) * .01)
     }
 
+screen.fill(BLACK)
 #####
 # build all the buildings
 more_buildings = True # keep building more buildings while this is true
@@ -121,13 +124,18 @@ while more_buildings:
     if position_x > window_x:
         skyline_filled=True
     if skyline_filled:
-        if random.randint(1, 10) > extra_buildings_threshold:
+        # if random.randint(1, 10) > extra_buildings_threshold:
             more_buildings = False
-        extra_buildings_threshold -= 1
-        position_x = random.randint(0, int(window_x*.25))
+        # extra_buildings_threshold -= 1
+        # position_x = random.randint(0, int(window_x*.25))
     buildings.append( makeBuilding(position_x))
 # build all the buildings
 #####
+
+for b in buildings:
+    b['surface'] = pygame.Surface((b['width'], b['height']))
+    b['surface'].fill(b['color'])
+    screen.blit(b['surface'], ( b['position_x'], window_y-b['height']))
 
 #####
 # find tallest building and add a flasher
@@ -167,43 +175,58 @@ while not done:
  
     # --- Drawing code should go here
 
-    screen.fill(BLACK)
-
-
     #####
     # add stars
-    star_x = random.randint(0, window_x)
-    star_y = random.randint(0, window_y)
+    found_good_spot = False
+    while not found_good_spot:
+        star_x = random.randint(0, window_x)
+        star_y = random.randint(0, window_y)
+        behind_building = False
+        for b in buildings:
+            if star_x in range(b['position_x'], b['position_x']+b['width']):
+                if star_y in range(window_y-b['height'], window_y):
+                    behind_building = True
+                    break
+        else:
+            found_good_spot = True
     star = {
         'coords': [star_x, star_y, 1, 1],
         'color': random.choice(star_colors)
     }
     stars.append(star)
-    for star in stars:
-        color = random.choice(star_colors) if star_flicker else star['color']
-        pygame.draw.rect(screen, color, star['coords'])
+
+    pygame.draw.rect(screen, star['color'], star['coords'])
     # add stars
     #####
 
     #####
+    # remove stars
+    if len(stars) > max_stars:
+        remove_star = random.choice(stars)
+        stars.remove(remove_star)
+        pygame.draw.rect(screen, BLACK, remove_star['coords'])
+    # remove stars
+    #####
+
+    #####
     # shooting stars
-    if not meteoroid:
-        meteoroid = makeMeteoroid()
-    if meteoroid['sleeptime']:
-        meteoroid['sleeptime'] -= 1
-    else:
+    # if not meteoroid:
+    #     meteoroid = makeMeteoroid()
+    # if meteoroid['sleeptime']:
+    #     meteoroid['sleeptime'] -= 1
+    # else:
 
-        pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
-        side = 10 - meteoroid['angle']
-        down = 10 - side
+    #     pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
+    #     side = 10 - meteoroid['angle']
+    #     down = 10 - side
 
-        meteoroid['coords'][1] += down*5
-        if meteoroid['direction'] == 'right':
-            meteoroid['coords'][0] += side*5
-        else:
-            meteoroid['coords'][0] -= side*5
-        if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
-            meteoroid = None#makeMeteoroid(sleeptime=random.randint(20,150))
+    #     meteoroid['coords'][1] += down*5
+    #     if meteoroid['direction'] == 'right':
+    #         meteoroid['coords'][0] += side*5
+    #     else:
+    #         meteoroid['coords'][0] -= side*5
+    #     if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
+    #         meteoroid = None#makeMeteoroid(sleeptime=random.randint(20,150))
     # shooting stars
     #####
 
@@ -211,14 +234,14 @@ while not done:
     # buildings
     for b in buildings:
         pygame.draw.rect(screen, b['color'], [ b['position_x'], window_y, b['width'], -(b['height']) ])
-
         #####
         # flashers
         if 'flasher' in b:
-            if b['flasher']['on'] > 0:
+            if b['flasher']['on'] == 1:
                 pygame.draw.ellipse( screen, RED, b['flasher']['coords'])
             b['flasher']['on'] += 1
             if b['flasher']['on'] >= 40:
+                pygame.draw.ellipse( screen, BLACK, b['flasher']['coords'])
                 b['flasher']['on'] = -40
         # flashers
         #####
@@ -250,8 +273,8 @@ while not done:
     # buildings
     #####
 
-    if len(stars) > max_stars:
-        stars.remove(random.choice(stars))
+    
+
 
     # --- Go ahead and update the screen with what we've drawn.
     # pygame.display.flip()
