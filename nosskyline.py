@@ -152,7 +152,7 @@ if flashers:
             tallest = b
     tallest['flasher'] = {
         'on':0,
-        'coords':( int(tallest['position_x']+int(tallest['width']*.5)), window_y-tallest['height']-10, 4, 4)
+        'coords':( int(tallest['position_x']+int(tallest['width']*.5))-2, window_y-tallest['height']-10, 4, 4)
     }
 # find tallest building and add a flasher
 #####
