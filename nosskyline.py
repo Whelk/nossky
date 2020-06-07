@@ -91,6 +91,12 @@ def makeBuilding(position_x=0):
 
         for xloop in range(width):
             if xloop % ( window_width+window_spacing_x): continue
+
+            if buildings:
+                previous = buildings[-1]
+                if xloop+position_x in range(previous['position_x'], previous['position_x']+previous['width']):
+                    if window_y-yloop in range(window_y-previous['height'], window_y):
+                        continue
             office_grid.append( ( xloop+position_x, window_y-yloop, window_width, window_height))
 
     return {
@@ -235,7 +241,6 @@ while not done:
     #####
     # buildings
     for b in buildings:
-        pygame.draw.rect(screen, b['color'], [ b['position_x'], window_y, b['width'], -(b['height']) ])
         #####
         # flashers
         if 'flasher' in b:
@@ -248,9 +253,6 @@ while not done:
         # flashers
         #####
 
-        for o in b['offices_light']:
-            pygame.draw.rect(screen, YELLOW, o)
-
         if len( b['offices_light']) > b['max_population']-1:
             if random.randint(1, 10) > 1: continue
 
@@ -260,6 +262,7 @@ while not done:
             office = random.choice(b['offices_dark'])
             b['offices_dark'].remove(office)
             b['offices_light'].append(office)
+            pygame.draw.rect(screen, YELLOW, office)
         # add offices
         #####
 
@@ -269,6 +272,7 @@ while not done:
             rando = random.choice(b['offices_light'])
             b['offices_light'].remove(rando)
             b['offices_dark'].append(rando)
+            pygame.draw.rect(screen, BLACK, rando)
         # remove offices
         #####
 
