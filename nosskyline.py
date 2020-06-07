@@ -7,6 +7,8 @@ import os
 
 pygame.init()
 
+os.chdir(sys.path[0])
+
 version_number = 1.0
 
 quit_message = "Quitting Nostalgia Skyline. See you next time!"
@@ -30,7 +32,7 @@ class Skyline():
     for t in tunes:
         if t[-4 :].lower() not in ['.mp3', '.ogg']:
             tunes.remove(t)
-    current_tune = pygame.mixer.music.load('tunes/%s' % random.choice(tunes))
+    current_tune = pygame.mixer.music.load('tunes/%s' % random.choice(tunes)) if tunes else None
     play_tunes = False
 
 if len(sys.argv) > 1:
@@ -40,8 +42,11 @@ if len(sys.argv) > 1:
             print("Starting in fullscreen mode.")
         elif arg in ['-m', '--music']:
             Skyline.play_tunes = True
-            print("Starting with music on.")
-            pygame.mixer.music.play(-1)
+            if Skyline.tunes:
+                print("Starting with music on.")
+                pygame.mixer.music.play(-1)
+            else:
+                print("No musicfiles in /tunes directory!")
         else:
             print('Invalid argument: %s' % arg)
 
@@ -233,8 +238,8 @@ while not done:
             # --- music toggle
             elif event.key == pygame.K_m:
                 if not Skyline.tunes:
-                    print("No musicfiles in tunes directory!")
-                if Skyline.play_tunes:
+                    print("No musicfiles in /tunes directory!")
+                elif Skyline.play_tunes:
                     print("Music off.")
                     pygame.mixer.music.stop()
                     Skyline.play_tunes = False
