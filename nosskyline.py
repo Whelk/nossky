@@ -213,13 +213,12 @@ while not done:
                     Skyline.fullscreen = False
                     Skyline.window_x = 700
                     Skyline.window_y = 500
-                    setScreen()
                 else:
                     print("Fullscreen mode.")
                     Skyline.fullscreen = True
                     Skyline.window_x = Skyline.window_x_max
                     Skyline.window_y = Skyline.window_y_max
-                    setScreen(fullscreen=True)
+                setScreen(fullscreen=Skyline.fullscreen)
 
                 Skyline.buildings = []
                 Skyline.stars = []
