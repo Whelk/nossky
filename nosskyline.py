@@ -7,6 +7,8 @@ pygame.init()
 
 version_number = 1.0
 
+quit_message = "Quitting Nostalgia Skyline. See you next time!"
+
 class Settings():
     infoObject = pygame.display.Info()
     window_x_max = infoObject.current_w
@@ -179,18 +181,20 @@ while not done:
     # --- Main event loop
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
-            print("Goodbye!")
+            print(quit_message)
             done = True # Flag that we are done so we exit this loop
         elif event.type == pygame.KEYDOWN:
+            #####
+            # fullscreen toggle
             if event.key == pygame.K_f:
                 if Settings.fullscreen:
-                    print("No more fullscreen.")
+                    print("Windowed mode.")
                     Settings.fullscreen = False
                     Settings.window_x = 700
                     Settings.window_y = 500
                     setScreen()
                 else:
-                    print("Go fullscreen!")
+                    print("Fullscreen mode.")
                     Settings.fullscreen = True
                     Settings.window_x = Settings.window_x_max
                     Settings.window_y = Settings.window_y_max
@@ -199,9 +203,17 @@ while not done:
                 Skyline.buildings = []
                 Skyline.stars = []
                 buildingSetup()
+            # fullscreen toggle
+            ####
+            elif event.key == pygame.K_r:
+                print("Resetting skyline.")
+                setScreen(fullscreen=Settings.fullscreen)
+                Skyline.buildings = []
+                Skyline.stars = []
+                buildingSetup()
             elif event.key == pygame.K_q:
                 done = True
-                print("Goodbye!")
+                print(quit_message)
 
         elif event.type == pygame.KEYUP: pass
         elif event.type == pygame.MOUSEBUTTONDOWN: pass
