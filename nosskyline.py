@@ -37,7 +37,11 @@ RED      = ( 255,   0,   0)
 BLUE     = (   0,   0, 255)
 YELLOW   = ( 252, 252,  10)
 
-
+def behindBuilding(x,y):
+    for b in buildings:
+        if x in range(b['position_x'], b['position_x']+b['width']):
+            if y in range(window_y-b['height'], window_y):
+                return True
 
 meteoroid = None
 star_flicker = False # stars will flicker between all star colors if true
@@ -91,12 +95,7 @@ def makeBuilding(position_x=0):
 
         for xloop in range(width):
             if xloop % ( window_width+window_spacing_x): continue
-
-            if buildings:
-                previous = buildings[-1]
-                if xloop+position_x in range(previous['position_x'], previous['position_x']+previous['width']):
-                    if window_y-yloop in range(window_y-previous['height'], window_y):
-                        continue
+            if behindBuilding(xloop+position_x, window_y-yloop): continue
             office_grid.append( ( xloop+position_x, window_y-yloop, window_width, window_height))
 
     return {
@@ -187,13 +186,7 @@ while not done:
     while not found_good_spot:
         star_x = random.randint(0, window_x)
         star_y = random.randint(0, window_y)
-        behind_building = False
-        for b in buildings:
-            if star_x in range(b['position_x'], b['position_x']+b['width']):
-                if star_y in range(window_y-b['height'], window_y):
-                    behind_building = True
-                    break
-        else:
+        if not behindBuilding(star_x, star_y):
             found_good_spot = True
     star = {
         'coords': [star_x, star_y, 1, 1],
