@@ -29,6 +29,7 @@ if len(sys.argv) > 1:
     for arg in sys.argv[1:]:
         if arg in ['-f', '--fullscreen']:
             Skyline.fullscreen = True
+            print("Starting in fullscreen mode.")
         else:
             print('Invalid argument: %s' % arg)
 
