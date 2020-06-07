@@ -1,20 +1,26 @@
 #!/usr/bin/python3
 
 import pygame
-import math
 import random
-import time
-import sys
 
-pygame.init()
-
-version_number = 0.1
+version_number = 1.0
 
 window_x = 700
 window_y = 500
 max_stars = (window_x * window_y) / 350
-size = (window_x, window_y)
-screen = pygame.display.set_mode(size)
+
+stars = []
+star_flicker = False # stars will flicker between all star colors if true (it wasn't a bug, it was a feature)
+
+buildings = []
+building_max_height = int(window_y * .7)
+building_min_height = int(window_y * .1)
+building_max_width = int(window_x * .15)
+building_min_width = int(window_x * .1)
+
+flashers = True # do you want the tallest building to have a blinking flasher light up top?
+
+meteoroid = None
 
 star_colors = [
     ( 255, 255, 255),
@@ -42,24 +48,6 @@ def behindBuilding(x,y):
         if x in range(b['position_x'], b['position_x']+b['width']):
             if y in range(window_y-b['height'], window_y):
                 return True
-
-meteoroid = None
-star_flicker = False # stars will flicker between all star colors if true
-
-stars = []
-
-offices = []
-
-flashers = True
-
-buildings = []
-building_min = 6#4
-building_max = 12#10
-building_max_height = int(window_y * .7)
-building_min_height = int(window_y * .1)
-building_max_width = int(window_x * .15)
-building_min_width = int(window_x * .1)
-building_max_overlap = 30 # unused
 
 def makeMeteoroid(sleeptime=0):
     meteoroid = {
@@ -110,7 +98,10 @@ def makeBuilding(position_x=0):
         "max_population":  int(len(office_grid) * random.randint( 50, 90) * .01)
     }
 
+pygame.init()
+screen = pygame.display.set_mode( ( window_x, window_y))
 screen.fill(BLACK)
+
 #####
 # build all the buildings
 more_buildings = True # keep building more buildings while this is true
@@ -265,21 +256,16 @@ while not done:
         #####
         # remove offices
         if len(b['offices_light']) > b['max_population']:
-            rando = random.choice(b['offices_light'])
-            b['offices_light'].remove(rando)
-            b['offices_dark'].append(rando)
-            pygame.draw.rect(screen, BLACK, rando)
+            office = random.choice(b['offices_light'])
+            b['offices_light'].remove(office)
+            b['offices_dark'].append(office)
+            pygame.draw.rect(screen, BLACK, office)
         # remove offices
         #####
 
     # buildings
     #####
 
-    
-
-
-    # --- Go ahead and update the screen with what we've drawn.
-    # pygame.display.flip()
     pygame.display.update()
  
     # --- Limit FPS
