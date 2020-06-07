@@ -3,24 +3,25 @@
 import pygame
 import random
 
+pygame.init()
+
 version_number = 1.0
 
-window_x = 700
-window_y = 500
-max_stars = (window_x * window_y) / 350
+class Settings():
+    infoObject = pygame.display.Info()
+    window_x_max = infoObject.current_w
+    window_y_max = infoObject.current_h
+    window_x = 700
+    window_y = 500
+    max_stars = (window_x * window_y) / 350
+    star_flicker = False # stars will flicker between all star colors if true (it wasn't a bug, it was a feature)
+    flashers = True # do you want the tallest building to have a blinking flasher light up top?
+    fullscreen = False
 
-stars = []
-star_flicker = False # stars will flicker between all star colors if true (it wasn't a bug, it was a feature)
-
-buildings = []
-building_max_height = int(window_y * .7)
-building_min_height = int(window_y * .1)
-building_max_width  = int(window_x * .15)
-building_min_width  = int(window_x * .1)
-
-flashers = True # do you want the tallest building to have a blinking flasher light up top?
-
-meteoroid = None
+class Skyline():
+    stars = []
+    buildings = []
+    meteoroid = None
 
 star_colors = [
     ( 255, 255, 255),
@@ -44,15 +45,15 @@ BLUE     = (   0,   0, 255)
 YELLOW   = ( 252, 252,  10)
 
 def behindBuilding(x,y):
-    for b in buildings:
+    for b in Skyline.buildings:
         if x in range(b['position_x'], b['position_x']+b['width']):
-            if y in range(window_y-b['height'], window_y):
+            if y in range(Settings.window_y-b['height'], Settings.window_y):
                 return True
 
 def makeMeteoroid(sleeptime=0):
     meteoroid = {
         'coords':[
-            random.randint(0, window_x),
+            random.randint(0, Settings.window_x),
             0,
             3,
             3
@@ -64,16 +65,22 @@ def makeMeteoroid(sleeptime=0):
     return meteoroid
 
 def makeBuilding(position_x=0):
-    height             = random.randint( building_min_height, building_max_height)
-    if buildings and height in range( buildings[-1]['height']-20, buildings[-1]['height']+20):
-        height = int(buildings[-1]['height'] * .5) # avoid buildings of extremely similar height next to one another
-    width              = random.randint( building_min_width, building_max_width)
-    window_height      = random.randint( 3, 6)
-    window_width       = random.randint( 2, 4)
-    border_width       = random.randint( 2, 4)
-    window_spacing_x   = random.randint( 4, 8)
-    window_spacing_y   = random.randint( 4, 12)
 
+    building_max_height = int(Settings.window_y * .7)
+    building_min_height = int(Settings.window_y * .1)
+    building_max_width  = 200 if Settings.fullscreen else int(Settings.window_x * .15)
+    building_min_width  = 50 if Settings.fullscreen else int(Settings.window_x * .1)
+
+    height              = random.randint( building_min_height, building_max_height)
+    width               = random.randint( building_min_width, building_max_width)
+    window_height       = random.randint( 3, 6)
+    window_width        = random.randint( 2, 4)
+    border_width        = random.randint( 2, 4)
+    window_spacing_x    = random.randint( 4, 8)
+    window_spacing_y    = random.randint( 4, 12)
+
+    if Skyline.buildings and height in range( Skyline.buildings[-1]['height']-20, Skyline.buildings[-1]['height']+20):
+        height = int(Skyline.buildings[-1]['height'] * .5) # avoid buildings of extremely similar height next to one another
 
     if window_width >= window_height: window_width = window_height-1 # windows wider than they are high look derpy
 
@@ -83,8 +90,8 @@ def makeBuilding(position_x=0):
 
         for xloop in range(width):
             if xloop % ( window_width+window_spacing_x): continue
-            if behindBuilding(xloop+position_x, window_y-yloop): continue
-            office_grid.append( ( xloop+position_x, window_y-yloop, window_width, window_height))
+            if behindBuilding(xloop+position_x, Settings.window_y-yloop): continue
+            office_grid.append( ( xloop+position_x, Settings.window_y-yloop, window_width, window_height))
 
     return {
         "height":          height,
@@ -98,55 +105,66 @@ def makeBuilding(position_x=0):
         "max_population":  int(len(office_grid) * random.randint( 50, 90) * .01)
     }
 
-pygame.init()
-screen = pygame.display.set_mode( ( window_x, window_y))
-screen.fill(BLACK)
-
-#####
-# build all the buildings
-more_buildings = True # keep building more buildings while this is true
-skyline_filled = False # building maker won't stop until the skyline is filled horizontally
-extra_buildings_threshold = 9 # The higher it is, the more likely to add extra buildings in front of existing ones after the skyline is filled
-while more_buildings:
-    if not buildings:
-        position_x = 0
+def setScreen(fullscreen=False):
+    global screen
+    if not fullscreen:
+        screen = pygame.display.set_mode( ( Settings.window_x, Settings.window_y))
     else:
-        last = buildings[-1]
-        position_x = last['position_x'] + ( last['width'] + random.randint(
-            -20, 10)
-            )
+        screen = pygame.display.set_mode(( Settings.window_x, Settings.window_y), pygame.FULLSCREEN)
+    screen.fill(BLACK)
 
-    if position_x > window_x:
-        skyline_filled=True
-    if skyline_filled:
-        # if random.randint(1, 10) > extra_buildings_threshold:
-            more_buildings = False
-        # extra_buildings_threshold -= 1
-        # position_x = random.randint(0, int(window_x*.25))
-    buildings.append( makeBuilding(position_x))
-# build all the buildings
-#####
 
-for b in buildings:
-    b['surface'] = pygame.Surface((b['width'], b['height']))
-    b['surface'].fill(b['color'])
-    screen.blit(b['surface'], ( b['position_x'], window_y-b['height']))
 
-#####
-# find tallest building and add a flasher
-if flashers:
-    tallest = None
-    for b in buildings:
-        if (b['position_x'] + (b['width']*.5)) > window_x:
-            continue
-        if not tallest or b['height'] > tallest['height']:
-            tallest = b
-    tallest['flasher'] = {
-        'on':0,
-        'coords':( int(tallest['position_x']+int(tallest['width']*.5))-2, window_y-tallest['height']-10, 4, 4)
-    }
-# find tallest building and add a flasher
-#####
+def buildingSetup():
+    #####
+    # build all the buildings
+    more_buildings = True # keep building more buildings while this is true
+    skyline_filled = False # building maker won't stop until the skyline is filled horizontally
+    extra_buildings_threshold = 9 # The higher it is, the more likely to add extra buildings in front of existing ones after the skyline is filled
+    while more_buildings:
+        if not Skyline.buildings:
+            position_x = 0
+        else:
+            last = Skyline.buildings[-1]
+            position_x = last['position_x'] + ( last['width'] + random.randint(
+                -20, 10)
+                )
+
+        if position_x > Settings.window_x:
+            skyline_filled=True
+        if skyline_filled:
+            # if random.randint(1, 10) > extra_buildings_threshold:
+                more_buildings = False
+            # extra_buildings_threshold -= 1
+            # position_x = random.randint(0, int(Settings.window_x*.25))
+        Skyline.buildings.append( makeBuilding(position_x))
+    # build all the buildings
+    #####
+
+    for b in Skyline.buildings:
+        b['surface'] = pygame.Surface((b['width'], b['height']))
+        b['surface'].fill(b['color'])
+        global screen
+        screen.blit(b['surface'], ( b['position_x'], Settings.window_y-b['height']))
+
+    #####
+    # find tallest building and add a flasher
+    if Settings.flashers:
+        tallest = None
+        for b in Skyline.buildings:
+            if (b['position_x'] + (b['width']*.5)) > Settings.window_x:
+                continue
+            if not tallest or b['height'] > tallest['height']:
+                tallest = b
+        tallest['flasher'] = {
+            'on':0,
+            'coords':( int(tallest['position_x']+int(tallest['width']*.5))-2, Settings.window_y-tallest['height']-10, 4, 4)
+        }
+    # find tallest building and add a flasher
+    #####
+
+setScreen()
+buildingSetup()
 
 pygame.display.set_caption( "Nostalgia Skyline v%s" % version_number)
 
@@ -163,64 +181,85 @@ while not done:
         if event.type == pygame.QUIT: # If user clicked close
             print("Goodbye!")
             done = True # Flag that we are done so we exit this loop
-        elif event.type == pygame.KEYDOWN: print( 'key down!')
-        elif event.type == pygame.KEYUP: print( 'key up.')
-        elif event.type == pygame.MOUSEBUTTONDOWN: print( 'mouse clickdown')
-        elif event.type == pygame.MOUSEBUTTONUP: print( 'mouse uparoo.')
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_f:
+                if Settings.fullscreen:
+                    print("No more fullscreen.")
+                    Settings.fullscreen = False
+                    Settings.window_x = 700
+                    Settings.window_y = 500
+                    setScreen()
+                else:
+                    print("Go fullscreen!")
+                    Settings.fullscreen = True
+                    Settings.window_x = Settings.window_x_max
+                    Settings.window_y = Settings.window_y_max
+                    setScreen(fullscreen=True)
+
+                Skyline.buildings = []
+                Skyline.stars = []
+                buildingSetup()
+            elif event.key == pygame.K_q:
+                done = True
+                print("Goodbye!")
+
+        elif event.type == pygame.KEYUP: pass
+        elif event.type == pygame.MOUSEBUTTONDOWN: pass
+        elif event.type == pygame.MOUSEBUTTONUP: pass
 
     #####
     # add stars
     found_good_spot = False
     while not found_good_spot:
-        star_x = random.randint(0, window_x)
-        star_y = random.randint(0, window_y)
+        star_x = random.randint(0, Settings.window_x)
+        star_y = random.randint(0, Settings.window_y)
         if not behindBuilding(star_x, star_y):
             found_good_spot = True
     star = {
         'coords': [star_x, star_y, 1, 1],
         'color': random.choice(star_colors)
     }
-    stars.append(star)
+    Skyline.stars.append(star)
     pygame.draw.rect(screen, star['color'], star['coords'])
     # add stars
     #####
 
     #####
     # remove stars
-    if len(stars) > max_stars:
-        remove_star = random.choice(stars)
-        stars.remove(remove_star)
+    if len(Skyline.stars) > Settings.max_stars:
+        remove_star = random.choice(Skyline.stars)
+        Skyline.stars.remove(remove_star)
         pygame.draw.rect(screen, BLACK, remove_star['coords'])
     # remove stars
     #####
 
     #####
     # shooting stars
-    if not meteoroid:
-        meteoroid = makeMeteoroid()
-    if meteoroid['sleeptime']:
-        meteoroid['sleeptime'] -= 1
+    if not Skyline.meteoroid:
+        Skyline.meteoroid = makeMeteoroid()
+    if Skyline.meteoroid['sleeptime']:
+        Skyline.meteoroid['sleeptime'] -= 1
     else:
-        pygame.draw.ellipse(screen, BLACK, meteoroid['coords'])
-        side = 10 - meteoroid['angle']
+        pygame.draw.ellipse(screen, BLACK, Skyline.meteoroid['coords'])
+        side = 10 - Skyline.meteoroid['angle']
         down = 10 - side
-        meteoroid['coords'][1] += down*5
-        if meteoroid['direction'] == 'right':
-            meteoroid['coords'][0] += side*5
+        Skyline.meteoroid['coords'][1] += down*5
+        if Skyline.meteoroid['direction'] == 'right':
+            Skyline.meteoroid['coords'][0] += side*5
         else:
-            meteoroid['coords'][0] -= side*5
+            Skyline.meteoroid['coords'][0] -= side*5
 
-        if not behindBuilding(meteoroid['coords'][0], meteoroid['coords'][1]):
-            pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
+        if not behindBuilding(Skyline.meteoroid['coords'][0], Skyline.meteoroid['coords'][1]):
+            pygame.draw.ellipse(screen, WHITE, Skyline.meteoroid['coords'])
 
-        if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
-            meteoroid = None
+        if Skyline.meteoroid['coords'][1] > Settings.window_y or Skyline.meteoroid['coords'][0] > Settings.window_x or Skyline.meteoroid['coords'][0] < 0:
+            Skyline.meteoroid = None
     # shooting stars
     #####
 
     #####
     # buildings
-    for b in buildings:
+    for b in Skyline.buildings:
         #####
         # flashers
         if 'flasher' in b:
