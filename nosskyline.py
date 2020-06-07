@@ -210,23 +210,25 @@ while not done:
 
     #####
     # shooting stars
-    # if not meteoroid:
-    #     meteoroid = makeMeteoroid()
-    # if meteoroid['sleeptime']:
-    #     meteoroid['sleeptime'] -= 1
-    # else:
+    if not meteoroid:
+        meteoroid = makeMeteoroid()
+    if meteoroid['sleeptime']:
+        meteoroid['sleeptime'] -= 1
+    else:
 
-    #     pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
-    #     side = 10 - meteoroid['angle']
-    #     down = 10 - side
+        pygame.draw.ellipse(screen, BLACK, meteoroid['coords'])
+        side = 10 - meteoroid['angle']
+        down = 10 - side
 
-    #     meteoroid['coords'][1] += down*5
-    #     if meteoroid['direction'] == 'right':
-    #         meteoroid['coords'][0] += side*5
-    #     else:
-    #         meteoroid['coords'][0] -= side*5
-    #     if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
-    #         meteoroid = None#makeMeteoroid(sleeptime=random.randint(20,150))
+        meteoroid['coords'][1] += down*5
+        if meteoroid['direction'] == 'right':
+            meteoroid['coords'][0] += side*5
+        else:
+            meteoroid['coords'][0] -= side*5
+
+        pygame.draw.ellipse(screen, WHITE, meteoroid['coords'])
+        if meteoroid['coords'][1] > window_y or meteoroid['coords'][0] > window_x or meteoroid['coords'][0] < 0:
+            meteoroid = None#makeMeteoroid(sleeptime=random.randint(20,150))
     # shooting stars
     #####
 
