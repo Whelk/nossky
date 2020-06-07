@@ -67,7 +67,7 @@ def makeMeteoroid(sleeptime=0):
         ],
         'sleeptime':sleeptime if sleeptime else random.randint(20, 360),
         'direction':random.choice(['left','right']),
-        'angle':random.randint(0, 10)
+        'angle':random.randint(3,7)
     }
     return meteoroid
 
