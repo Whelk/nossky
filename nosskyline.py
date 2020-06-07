@@ -2,6 +2,7 @@
 
 import pygame
 import random
+import sys
 
 pygame.init()
 
@@ -17,9 +18,19 @@ class Skyline():
     meteoroid = None
     window_x = 700
     window_y = 500
+    window_x_max = infoObject.current_w
+    window_y_max = infoObject.current_h
     max_stars = (window_x * window_y) / 350
     flashers = True # do you want the tallest building to have a blinking flasher light up top?
     fullscreen = False
+    screen = None
+
+if len(sys.argv) > 1:
+    for arg in sys.argv[1:]:
+        if arg in ['-f', '--fullscreen']:
+            Skyline.fullscreen = True
+        else:
+            print('Invalid argument: %s' % arg)
 
 star_colors = [
     ( 255, 255, 255),
@@ -104,12 +115,12 @@ def makeBuilding(position_x=0):
     }
 
 def setScreen(fullscreen=False):
-    global screen
-    if not fullscreen:
-        screen = pygame.display.set_mode( ( Skyline.window_x, Skyline.window_y))
-    else:
-        screen = pygame.display.set_mode(( Skyline.window_x, Skyline.window_y), pygame.FULLSCREEN)
-    screen.fill(BLACK)
+    if fullscreen:
+        fullscreen = pygame.FULLSCREEN
+        Skyline.window_x = Skyline.window_x_max
+        Skyline.window_y = Skyline.window_y_max
+    Skyline.screen = pygame.display.set_mode(( Skyline.window_x, Skyline.window_y), fullscreen)
+    Skyline.screen.fill(BLACK)
 
 
 
@@ -142,8 +153,7 @@ def buildingSetup():
     for b in Skyline.buildings:
         b['surface'] = pygame.Surface((b['width'], b['height']))
         b['surface'].fill(b['color'])
-        global screen
-        screen.blit(b['surface'], ( b['position_x'], Skyline.window_y-b['height']))
+        Skyline.screen.blit(b['surface'], ( b['position_x'], Skyline.window_y-b['height']))
 
     #####
     # find tallest building and add a flasher
@@ -161,7 +171,7 @@ def buildingSetup():
     # find tallest building and add a flasher
     #####
 
-setScreen()
+setScreen(fullscreen=Skyline.fullscreen)
 buildingSetup()
 
 pygame.display.set_caption( "Nostalgia Skyline v%s" % version_number)
@@ -192,8 +202,8 @@ while not done:
                 else:
                     print("Fullscreen mode.")
                     Skyline.fullscreen = True
-                    Skyline.window_x = infoObject.current_w
-                    Skyline.window_y = infoObject.current_h
+                    Skyline.window_x = Skyline.window_x_max
+                    Skyline.window_y = Skyline.window_y_max
                     setScreen(fullscreen=True)
 
                 Skyline.buildings = []
@@ -228,7 +238,7 @@ while not done:
         'color': random.choice(star_colors)
     }
     Skyline.stars.append(star)
-    pygame.draw.rect(screen, star['color'], star['coords'])
+    pygame.draw.rect(Skyline.screen, star['color'], star['coords'])
     # add stars
     #####
 
@@ -237,7 +247,7 @@ while not done:
     if len(Skyline.stars) > Skyline.max_stars:
         remove_star = random.choice(Skyline.stars)
         Skyline.stars.remove(remove_star)
-        pygame.draw.rect(screen, BLACK, remove_star['coords'])
+        pygame.draw.rect(Skyline.screen, BLACK, remove_star['coords'])
     # remove stars
     #####
 
@@ -248,7 +258,7 @@ while not done:
     if Skyline.meteoroid['sleeptime']:
         Skyline.meteoroid['sleeptime'] -= 1
     else:
-        pygame.draw.ellipse(screen, BLACK, Skyline.meteoroid['coords'])
+        pygame.draw.ellipse(Skyline.screen, BLACK, Skyline.meteoroid['coords'])
         side = 10 - Skyline.meteoroid['angle']
         down = 10 - side
         Skyline.meteoroid['coords'][1] += down*5
@@ -258,7 +268,7 @@ while not done:
             Skyline.meteoroid['coords'][0] -= side*5
 
         if not behindBuilding(Skyline.meteoroid['coords'][0], Skyline.meteoroid['coords'][1]):
-            pygame.draw.ellipse(screen, WHITE, Skyline.meteoroid['coords'])
+            pygame.draw.ellipse(Skyline.screen, WHITE, Skyline.meteoroid['coords'])
 
         if Skyline.meteoroid['coords'][1] > Skyline.window_y or Skyline.meteoroid['coords'][0] > Skyline.window_x or Skyline.meteoroid['coords'][0] < 0:
             Skyline.meteoroid = None
@@ -272,10 +282,10 @@ while not done:
         # flashers
         if 'flasher' in b:
             if b['flasher']['on'] == 1:
-                pygame.draw.ellipse( screen, RED, b['flasher']['coords'])
+                pygame.draw.ellipse( Skyline.screen, RED, b['flasher']['coords'])
             b['flasher']['on'] += 1
             if b['flasher']['on'] >= 40:
-                pygame.draw.ellipse( screen, BLACK, b['flasher']['coords'])
+                pygame.draw.ellipse( Skyline.screen, BLACK, b['flasher']['coords'])
                 b['flasher']['on'] = -40
         # flashers
         #####
@@ -289,7 +299,7 @@ while not done:
             office = random.choice(b['offices_dark'])
             b['offices_dark'].remove(office)
             b['offices_light'].append(office)
-            pygame.draw.rect(screen, YELLOW, office)
+            pygame.draw.rect(Skyline.screen, YELLOW, office)
         # add offices
         #####
 
@@ -299,7 +309,7 @@ while not done:
             office = random.choice(b['offices_light'])
             b['offices_light'].remove(office)
             b['offices_dark'].append(office)
-            pygame.draw.rect(screen, BLACK, office)
+            pygame.draw.rect(Skyline.screen, BLACK, office)
         # remove offices
         #####
 
