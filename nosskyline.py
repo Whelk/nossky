@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import pygame
+import pygame.freetype
 import random
 import sys
 import os
@@ -8,6 +9,8 @@ import os
 pygame.init()
 
 os.chdir(sys.path[0])
+
+GAME_FONT = pygame.freetype.Font(None, 12)
 
 version_number = 1.0
 
@@ -27,6 +30,7 @@ class Skyline():
     meteoroid = None
     flashers = True # do you want the tallest building to have a blinking flasher light up top?
     fullscreen = False
+    display_message = None
 
     tunes = os.listdir('tunes')
     for t in tunes:
@@ -34,6 +38,21 @@ class Skyline():
             tunes.remove(t)
     current_tune = pygame.mixer.music.load('tunes/%s' % random.choice(tunes)) if tunes else None
     play_tunes = False
+
+def displayMessage(message, display_time=75, print_msg=True):
+    if print_msg:
+        print(message)
+    Skyline.display_message = {
+        "message":message,
+        "display_time": display_time,
+        "displayed": False,
+    }
+
+keys_message = "f: toggle fullscreen, m: music, q: quit, r: reset skyline"
+displayMessage(
+    keys_message,
+    display_time = 200
+)
 
 if len(sys.argv) > 1:
     for arg in sys.argv[1:]:
@@ -112,7 +131,7 @@ def makeBuilding(position_x=0):
         previous_building = Skyline.buildings[-1]
         # avoid buildings of extremely similar height next to one another
         if height in range( previous_building['height']-20, previous_building['height']+20):
-            height = int(previous_building['height'] * .5) 
+            height = int(previous_building['height'] * .5)
         # avoid buildings with exact same window sizes next to one another
         if (window_width, window_height) == (previous_building['window_width'], previous_building['window_height']):
             if window_width > window_width_min:
@@ -155,8 +174,6 @@ def setScreen(fullscreen=False):
         pygame.mouse.set_visible(True)
     Skyline.screen = pygame.display.set_mode(( Skyline.window_x, Skyline.window_y), fullscreen)
     Skyline.screen.fill(BLACK)
-
-
 
 def buildingSetup():
     #####
@@ -221,18 +238,19 @@ while not done:
     # --- Main event loop
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
-            print(quit_message)
+            displayMessage(quit_message)
             done = True # Flag that we are done so we exit this loop
         elif event.type == pygame.KEYDOWN:
+
             # --- fullscreen toggle
             if event.key == pygame.K_f:
                 if Skyline.fullscreen:
-                    print("Windowed mode.")
+                    displayMessage("Windowed mode.")
                     Skyline.fullscreen = False
                     Skyline.window_x = 700
                     Skyline.window_y = 500
                 else:
-                    print("Fullscreen mode.")
+                    displayMessage("Fullscreen mode.")
                     Skyline.fullscreen = True
                     Skyline.window_x = Skyline.window_x_max
                     Skyline.window_y = Skyline.window_y_max
@@ -243,7 +261,7 @@ while not done:
                 buildingSetup()
             # --- reset skyline
             elif event.key == pygame.K_r:
-                print("Resetting skyline.")
+                displayMessage("Resetting skyline.")
                 setScreen(fullscreen=Skyline.fullscreen)
                 Skyline.buildings = []
                 Skyline.stars = []
@@ -251,19 +269,21 @@ while not done:
             # --- music toggle
             elif event.key == pygame.K_m:
                 if not Skyline.tunes:
-                    print("No musicfiles in /tunes directory!")
+                    displayMessage("No musicfiles in /tunes directory!")
                 elif Skyline.play_tunes:
-                    print("Music off.")
+                    displayMessage("Music off.")
                     pygame.mixer.music.stop()
                     Skyline.play_tunes = False
                 else:
-                    print("Music on.")
+                    displayMessage("Music on.")
                     pygame.mixer.music.play(-1)
                     Skyline.play_tunes = True
             # --- quit
             elif event.key == pygame.K_q:
                 done = True
-                print(quit_message)
+                displayMessage(quit_message)
+            else:
+                displayMessage(keys_message, display_time=200)
 
         elif event.type == pygame.KEYUP: pass
         elif event.type == pygame.MOUSEBUTTONDOWN: pass
@@ -359,6 +379,14 @@ while not done:
 
     # buildings
     #####
+
+    if Skyline.display_message:
+        pygame.draw.rect(Skyline.screen, BLACK, (10, 10, Skyline.window_x, 15))
+        GAME_FONT.render_to(Skyline.screen, (10,10), Skyline.display_message['message'], (255, 255, 255))
+        Skyline.display_message['display_time'] -= 1
+        if Skyline.display_message['display_time'] < 1:
+            Skyline.display_message = None
+            pygame.draw.rect(Skyline.screen, BLACK, (10, 10, Skyline.window_x, 15))
 
     pygame.display.update()
 
