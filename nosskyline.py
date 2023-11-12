@@ -37,7 +37,11 @@ class Skyline:
     flashers = True  # do you want the tallest building to have a blinking flasher light up top?
     fullscreen = False
     display_message = None
-    speed = 30
+    speed = 60
+    star_rate = 2
+    office_rate = 4
+    flasher_rate = 3
+    tick = 0
 
     tunes = os.listdir("tunes")
     for t in tunes:
@@ -50,6 +54,7 @@ class Skyline:
 
 
 skyline = Skyline()
+skyline.default_speed = skyline.speed
 
 
 def display_message(message, display_time=75, print_msg=True):
@@ -64,8 +69,6 @@ def display_message(message, display_time=75, print_msg=True):
         "displayed": False,
     }
 
-
-DEFAULT_SPEED = 30
 
 KEYS_MESSAGE = "f: toggle fullscreen, m: toggle music, q: quit, r: reset skyline +: speed up -: speed down s: reset speed"
 display_message(KEYS_MESSAGE, display_time=200)
@@ -131,7 +134,7 @@ def make_meteoroid(sleeptime=0):
         "sleeptime": sleeptime
         if sleeptime
         else random.randint(
-            20, 360
+            250, 1000
         ),  # time until next meteoroid after this one goes offscreen
         "direction": random.choice(["left", "right"]),
         "angle": random.randint(3, 7),
@@ -347,45 +350,46 @@ while not program_done:
                 display_message(QUIT_MESSAGE)
             # --- speed up
             elif event.key == pygame.K_EQUALS or event.key == pygame.K_PLUS:
-                skyline.speed += 5
+                skyline.speed += 10
                 display_message(f"Speed: {skyline.speed}")
             # --- speed down
             elif event.key == pygame.K_MINUS:
-                if skyline.speed <= 5:
+                if skyline.speed <= 10:
                     display_message("Can't go any slower!")
                 else:
-                    skyline.speed -= 5
+                    skyline.speed -= 10
                     display_message(f"Speed: {skyline.speed}")
             # --- reset speed
             elif event.key == pygame.K_s:
-                skyline.speed = DEFAULT_SPEED
+                skyline.speed = skyline.default_speed
                 display_message("Speed reset.")
             # --- display help
             else:
                 display_message(KEYS_MESSAGE, display_time=200)
 
-    #####
-    # add stars
-    found_good_spot = False
-    while not found_good_spot:
-        star_x = random.randint(0, skyline.window_x)
-        star_y = random.randint(0, skyline.window_y)
-        if not behind_building(star_x, star_y):
-            found_good_spot = True
-    star = {"coords": [star_x, star_y, 1, 1], "color": random.choice(star_colors)}
-    skyline.stars.append(star)
-    pygame.draw.rect(skyline.screen, star["color"], star["coords"])
-    # add stars
-    #####
+    if not skyline.tick % skyline.star_rate:
+        #####
+        # add stars
+        found_good_spot = False
+        while not found_good_spot:
+            star_x = random.randint(0, skyline.window_x)
+            star_y = random.randint(0, skyline.window_y)
+            if not behind_building(star_x, star_y):
+                found_good_spot = True
+        star = {"coords": [star_x, star_y, 1, 1], "color": random.choice(star_colors)}
+        skyline.stars.append(star)
+        pygame.draw.rect(skyline.screen, star["color"], star["coords"])
+        # add stars
+        #####
 
-    #####
-    # remove stars
-    if len(skyline.stars) > skyline.max_stars:
-        remove_star = random.choice(skyline.stars)
-        skyline.stars.remove(remove_star)
-        pygame.draw.rect(skyline.screen, BLACK, remove_star["coords"])
-    # remove stars
-    #####
+        #####
+        # remove stars
+        if len(skyline.stars) > skyline.max_stars:
+            remove_star = random.choice(skyline.stars)
+            skyline.stars.remove(remove_star)
+            pygame.draw.rect(skyline.screen, BLACK, remove_star["coords"])
+        # remove stars
+        #####
 
     #####
     # shooting stars
@@ -422,7 +426,7 @@ while not program_done:
     for bldg in skyline.buildings:
         #####
         # flashers
-        if "flasher" in bldg:
+        if "flasher" in bldg and not skyline.tick % skyline.flasher_rate:
             if bldg["flasher"]["on"] == 1:
                 pygame.draw.ellipse(skyline.screen, RED, bldg["flasher"]["coords"])
             bldg["flasher"]["on"] += 1
@@ -438,25 +442,26 @@ while not program_done:
         ):
             continue
 
-        #####
-        # add offices
-        if bldg["offices_dark"] and random.randint(1, 10) > 5:
-            office = random.choice(bldg["offices_dark"])
-            bldg["offices_dark"].remove(office)
-            bldg["offices_light"].append(office)
-            pygame.draw.rect(skyline.screen, YELLOW, office)
-        # add offices
-        #####
+        if not skyline.tick % skyline.office_rate:
+            #####
+            # add offices
+            if bldg["offices_dark"] and random.randint(1, 10) > 5:
+                office = random.choice(bldg["offices_dark"])
+                bldg["offices_dark"].remove(office)
+                bldg["offices_light"].append(office)
+                pygame.draw.rect(skyline.screen, YELLOW, office)
+            # add offices
+            #####
 
-        #####
-        # remove offices
-        if len(bldg["offices_light"]) > bldg["max_population"]:
-            office = random.choice(bldg["offices_light"])
-            bldg["offices_light"].remove(office)
-            bldg["offices_dark"].append(office)
-            pygame.draw.rect(skyline.screen, BLACK, office)
-        # remove offices
-        #####
+            #####
+            # remove offices
+            if len(bldg["offices_light"]) > bldg["max_population"]:
+                office = random.choice(bldg["offices_light"])
+                bldg["offices_light"].remove(office)
+                bldg["offices_dark"].append(office)
+                pygame.draw.rect(skyline.screen, BLACK, office)
+            # remove offices
+            #####
 
     # buildings
     #####
@@ -475,6 +480,10 @@ while not program_done:
             pygame.draw.rect(skyline.screen, BLACK, (10, 10, skyline.window_x, 15))
 
     pygame.display.update()
+
+    skyline.tick += 1
+    if skyline.tick >= 9999:
+        skyline.tick = 0
 
     # --- Limit FPS
     clock.tick(skyline.speed)
