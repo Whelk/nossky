@@ -37,6 +37,7 @@ class Skyline:
     flashers = True  # do you want the tallest building to have a blinking flasher light up top?
     fullscreen = False
     display_message = None
+    speed = 30
 
     tunes = os.listdir("tunes")
     for t in tunes:
@@ -64,7 +65,9 @@ def display_message(message, display_time=75, print_msg=True):
     }
 
 
-KEYS_MESSAGE = "f: toggle fullscreen, m: toggle music, q: quit, r: reset skyline"
+DEFAULT_SPEED = 30
+
+KEYS_MESSAGE = "f: toggle fullscreen, m: toggle music, q: quit, r: reset skyline +: speed up -: speed down s: reset speed"
 display_message(KEYS_MESSAGE, display_time=200)
 
 if len(sys.argv) > 1:
@@ -173,8 +176,9 @@ def make_building(position_x=0):
             else:
                 window_height += 1
 
+    # windows wider than they are high look derpy
     if window_width >= window_height:
-        window_width = window_height - 1  # windows wider than they are high look derpy
+        window_width = window_height - 1
 
     office_grid = []
     for yloop in range(height):
@@ -231,10 +235,13 @@ def building_setup():
     """
     #####
     # build all the buildings
-    more_buildings = True  # keep building more buildings while this is true
-    skyline_filled = (
-        False  # building maker won't stop until the skyline is filled horizontally
-    )
+
+    # keep building more buildings while this is true
+    more_buildings = True
+
+    # building maker won't stop until the skyline is filled horizontally
+    skyline_filled = False
+
     while more_buildings:
         if not skyline.buildings:
             position_x = 0
@@ -338,6 +345,22 @@ while not program_done:
             elif event.key == pygame.K_q:
                 program_done = True
                 display_message(QUIT_MESSAGE)
+            # --- speed up
+            elif event.key == pygame.K_EQUALS or event.key == pygame.K_PLUS:
+                skyline.speed += 5
+                display_message(f"Speed: {skyline.speed}")
+            # --- speed down
+            elif event.key == pygame.K_MINUS:
+                if skyline.speed <= 5:
+                    display_message("Can't go any slower!")
+                else:
+                    skyline.speed -= 5
+                    display_message(f"Speed: {skyline.speed}")
+            # --- reset speed
+            elif event.key == pygame.K_s:
+                skyline.speed = DEFAULT_SPEED
+                display_message("Speed reset.")
+            # --- display help
             else:
                 display_message(KEYS_MESSAGE, display_time=200)
 
@@ -454,7 +477,7 @@ while not program_done:
     pygame.display.update()
 
     # --- Limit FPS
-    clock.tick(30)
+    clock.tick(skyline.speed)
 
 # Close the window and quit.
 pygame.quit()

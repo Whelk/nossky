@@ -14,3 +14,6 @@ Key | Function
 `m` | toggle music (must have soundfiles in the /tunes directory)
 `q` | quit
 `r` | reset skyline
+`+` | speed up
+`-` | speed down
+`s` | reset speed
