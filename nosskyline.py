@@ -193,9 +193,14 @@ def make_building(position_x=0):
                 continue
             if behind_building(xloop + position_x, skyline.window_y - yloop):
                 continue
+
+            posy = xloop+position_x+4
+            if posy+window_width > position_x+width:
+                continue
+
             office_grid.append(
                 (
-                    xloop + position_x,
+                    posy,
                     skyline.window_y - yloop,
                     window_width,
                     window_height,
